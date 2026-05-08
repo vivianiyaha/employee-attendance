@@ -48,7 +48,7 @@ with col1:
 # =====================================================
 # SETTINGS
 # =====================================================
-EMP_FILE = "employees.csv"
+EMP_FILE = "employee.csv"
 LEV_FILE = "leaves.csv"
 
 LATE_TIME = "08:30:00"
