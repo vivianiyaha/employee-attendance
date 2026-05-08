@@ -54,58 +54,6 @@ LEV_FILE = "leaves.csv"
 LATE_TIME = "08:30:00"
 OVERTIME_TIME = "18:00:00"
 
-# =====================================================
-# LOGIN USERS
-# =====================================================
-USERS = {
-    "admin": "admin123",
-    "hr": "hr123"
-}
-
-# =====================================================
-# SESSION STATE
-# =====================================================
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if "username" not in st.session_state:
-    st.session_state.username = ""
-
-# =====================================================
-# LOGIN FUNCTION
-# =====================================================
-def login():
-
-    st.title("🔐 HR System Login")
-
-    username = st.text_input("Username").strip()
-    password = st.text_input("Password", type="password").strip()
-
-    if st.button("Login"):
-
-        if username in USERS and USERS[username] == password:
-
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.rerun()
-
-        else:
-            st.error("Invalid login credentials")
-
-# =====================================================
-# LOGOUT
-# =====================================================
-def logout():
-
-    st.session_state.logged_in = False
-    st.rerun()
-
-# =====================================================
-# STOP IF NOT LOGGED IN
-# =====================================================
-if not st.session_state.logged_in:
-    login()
-    st.stop()
 
 # =====================================================
 # LOAD DATA
