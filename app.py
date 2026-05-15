@@ -170,38 +170,64 @@ elif menu == "Employee Management":
 # =====================================================
 # ATTENDANCE REPORTS
 # =====================================================
+# =====================================================
+# ATTENDANCE REPORTS
+# =====================================================
 elif menu == "Attendance Reports":
 
     st.subheader("Daily Attendance")
 
-    attendance_folder = DATA_FOLDER  # FIXED HERE
+    attendance_folder = "daily-attendance"
 
-    # Check folder exists
-if os.path.exists(attendance_folder):
+    # Check if folder exists
+    if os.path.exists(attendance_folder):
 
-    # Get all CSV files in folder
-    csv_files = [f for f in os.listdir(attendance_folder) if f.endswith(".csv")]
+        # Get all csv files
+        csv_files = [
+            f for f in os.listdir(attendance_folder)
+            if f.endswith(".csv")
+        ]
 
-    if csv_files:
+        if csv_files:
 
-        # DROPDOWN BUTTON
-        selected_file = st.selectbox("Select Attendance File", csv_files)
+            # SECOND DROPDOWN BUTTON
+            selected_file = st.selectbox(
+                "Select Daily Attendance File",
+                csv_files
+            )
 
-        # Load selected file
-        file_path = os.path.join(attendance_folder, selected_file)
-        df = pd.read_csv(file_path)
+            # Optional load button
+            if st.button("Open Attendance File"):
 
-        # Show data
-        df.index = range(1, len(df) + 1)
-        st.success(f"Loaded: {selected_file}")
-        st.dataframe(df, use_container_width=True)
+                file_path = os.path.join(
+                    attendance_folder,
+                    selected_file
+                )
 
+                try:
+                    df = pd.read_csv(file_path)
+
+                    # Start numbering from 1
+                    df.index = range(1, len(df) + 1)
+
+                    st.success(f"Loaded: {selected_file}")
+                    st.dataframe(
+                        df,
+                        use_container_width=True
+                    )
+
+                except Exception as e:
+                    st.error(f"Error loading file: {e}")
 
         else:
-            st.warning("No CSV files in daily-attendance folder")
+            st.warning(
+                "No CSV files found in daily-attendance folder"
+            )
 
     else:
-        st.error("Folder 'daily-attendance' not found")
+        st.error(
+            "Folder 'daily-attendance' not found"
+        )
 # =====================================================
 # LEAVE MANAGEMENT
 # =====================================================
