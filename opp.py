@@ -157,12 +157,12 @@ elif menu == "Employee Management":
 
     employees = load_employees()
 
-    # Add serial number starting from 1
-    employees_display = employees.copy()
-    employees_display.insert(0, "S/N", range(1, len(employees_display) + 1))
+    # Reset index and start from 1
+    employees.index = range(1, len(employees) + 1)
+    employees.index.name = "S/N"
 
     st.subheader("Employees")
-    st.dataframe(employees_display, use_container_width=True)
+    st.dataframe(employees, use_container_width=True)
 
 # ==========================================================
 # ATTENDANCE REPORTS
