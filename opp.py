@@ -155,8 +155,14 @@ elif menu == "Employee Management":
 
     st.markdown('<div class="title">EMPLOYEE MANAGEMENT</div>', unsafe_allow_html=True)
 
+    employees = load_employees()
+
+    # Add serial number starting from 1
+    employees_display = employees.copy()
+    employees_display.insert(0, "S/N", range(1, len(employees_display) + 1))
+
     st.subheader("Employees")
-    st.dataframe(load_employees(), use_container_width=True)
+    st.dataframe(employees_display, use_container_width=True)
 
 # ==========================================================
 # ATTENDANCE REPORTS
