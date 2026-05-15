@@ -7,14 +7,17 @@ from datetime import datetime
 # PAGE CONFIG
 # =====================================================
 st.set_page_config(layout="wide")
+initial_sidebar_state="collapsed"
 
 # =====================================================
 # DATA FOLDER
 # =====================================================
 
-DATA_FOLDER = "data"
+DATA_FOLDER = "performance_data"
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
+data_folder = "weekly_report"
+Path(data_folder).mkdir(exist_ok=True)
 
 # =====================================================
 # STYLING
@@ -45,7 +48,7 @@ col1, col2 = st.columns([1, 6])
 
 with col1:
     if os.path.exists("logo.png"):
-        st.image("logo.png", width=200)
+        st.image("logo.png", width=400)
 
 # =====================================================
 # SETTINGS
@@ -116,8 +119,7 @@ st.session_state.attendance = load_all_attendance()
 if "leaves" not in st.session_state:
     st.session_state.leaves = load_data(LEV_FILE)
 
-# =====================================================
-# SIDEBAR (REMOVED LOGIN)
+
 # =====================================================
 st.sidebar.title("Navigation")
 
@@ -137,7 +139,7 @@ menu = st.sidebar.selectbox(
 # =====================================================
 # MAIN TITLE
 # =====================================================
-st.title("HR Attendance System")
+st.title("Attendance System")
 
 # =====================================================
 # DASHBOARD
@@ -156,116 +158,15 @@ if menu == "Dashboard":
 # =====================================================
 elif menu == "Employee Management":
 
-    st.subheader("Employee Management")
-
     st.subheader("Employee List")
 
     if st.session_state.employees:
         df = pd.DataFrame(st.session_state.employees)
+        df.index = range(1, len(df) + 1)
         st.dataframe(df, use_container_width=True)
     else:
         st.info("No employees added yet")
 
-# =====================================================
-# CLOCK IN / OUT
-# =====================================================
-elif menu == "Clock In/Out":
-
-    if not st.session_state.employees:
-        st.warning("Add employees first")
-        st.stop()
-
-    names = [e["Name"] for e in st.session_state.employees]
-    employee = st.selectbox("Employee", names)
-
-    today = pd.Timestamp.now()
-
-    if today.weekday() == 6:
-        st.warning("Attendance only Monday - Saturday")
-        st.stop()
-
-    action = st.radio("Action", ["Clock In", "Clock Out"])
-
-    if st.button("Submit Attendance"):
-
-        date = str(today.date())
-        time_now = today.strftime("%H:%M:%S")
-
-        attendance = st.session_state.attendance
-        df = pd.DataFrame(attendance)
-
-        if action == "Clock In":
-
-            if not df.empty:
-                exists = df[(df["Name"] == employee) & (df["Date"] == date)]
-                if not exists.empty:
-                    st.error("Already clocked in")
-                    st.stop()
-
-            late = time_now > LATE_TIME
-
-            new_record = {
-                "Name": employee,
-                "Date": date,
-                "Time In": time_now,
-                "Time Out": ""
-            }
-
-            attendance.append(new_record)
-            save_daily_upload(pd.DataFrame([new_record]))
-
-            if late:
-                st.warning("Employee is late")
-            else:
-                st.success("Clock In recorded")
-
-        else:
-
-            updated = False
-
-            for rec in attendance:
-                if rec["Name"] == employee and rec["Date"] == date:
-                    rec["Time Out"] = time_now
-                    updated = True
-                    save_daily_upload(pd.DataFrame([rec]))
-                    break
-
-            if updated:
-                st.success("Clock Out recorded")
-            else:
-                st.error("No clock-in found")
-
-# =====================================================
-# DAILY UPLOAD
-# =====================================================
-elif menu == "Daily Upload":
-
-    st.subheader("Upload Daily Attendance CSVs")
-
-    uploaded_files = st.file_uploader(
-        "Upload Attendance CSVs",
-        type=["csv"],
-        accept_multiple_files=True
-    )
-
-    if uploaded_files:
-        for uploaded_file in uploaded_files:
-            try:
-                df = pd.read_csv(uploaded_file)
-
-                required_columns = ["Name", "Date", "Time In", "Time Out"]
-                missing = [col for col in required_columns if col not in df.columns]
-
-                if missing:
-                    st.error(f"{uploaded_file.name} missing: {', '.join(missing)}")
-                else:
-                    save_daily_upload(df)
-                    st.success(f"Uploaded: {uploaded_file.name}")
-
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-        st.session_state.attendance = load_all_attendance()
 
 # =====================================================
 # ATTENDANCE REPORTS
