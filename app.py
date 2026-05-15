@@ -16,7 +16,7 @@ initial_sidebar_state="collapsed"
 DATA_FOLDER = "performance_data"
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
-data_folder = "weekly_report"
+data_folder = "daily-attendance"
 Path(data_folder).mkdir(exist_ok=True)
 
 # =====================================================
@@ -128,8 +128,6 @@ menu = st.sidebar.selectbox(
     [
         "Dashboard",
         "Employee Management",
-        "Clock In/Out",
-        "Daily Upload",
         "Attendance Reports",
         "Leave Management",
         "HR Analytics"
@@ -173,14 +171,41 @@ elif menu == "Employee Management":
 # =====================================================
 elif menu == "Attendance Reports":
 
-    if not st.session_state.attendance:
-        st.info("No attendance records")
+    st.subheader("Daily Attendance")
+
+    # Folder where daily attendance CSV files are stored
+    attendance_folder = "daily-attendance"
+
+    # Check if folder exists
+    if not os.path.exists(attendance_folder):
+        st.error("daily-attendance folder not found")
         st.stop()
 
-    df = pd.DataFrame(st.session_state.attendance)
+    # Get all CSV files in the folder
+    csv_files = [f for f in os.listdir(attendance_folder) if f.endswith(".csv")]
 
-    st.subheader("Daily Attendance")
-    st.dataframe(df, use_container_width=True)
+    if not csv_files:
+        st.info("No attendance CSV files found")
+        st.stop()
+
+    # Select latest CSV file automatically
+    latest_file = max(
+        [os.path.join(attendance_folder, f) for f in csv_files],
+        key=os.path.getmtime
+    )
+
+    # Load CSV
+    try:
+        df = pd.read_csv(latest_file)
+
+        # Start row numbering from 1
+        df.index = range(1, len(df) + 1)
+
+        st.success(f"Loaded: {os.path.basename(latest_file)}")
+        st.dataframe(df, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error loading attendance file: {e}")
 
 # =====================================================
 # LEAVE MANAGEMENT
