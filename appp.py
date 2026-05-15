@@ -144,15 +144,6 @@ elif menu == "Employee Management":
 
     st.markdown('<div class="title">EMPLOYEE MANAGEMENT</div>', unsafe_allow_html=True)
 
-    name = st.text_input("Employee Name")
-
-    if st.button("Add Employee"):
-        if name:
-            save_employee(name)
-            st.success("Employee added successfully")
-        else:
-            st.warning("Enter a name")
-
     st.subheader("Employees")
     st.dataframe(load_employees(), use_container_width=True)
 
