@@ -19,8 +19,6 @@ st.set_page_config(
 DATA_FOLDER = "daily-attendance"
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
-data_folder = "daily-attendance"
-Path(data_folder).mkdir(exist_ok=True)
 
 # =====================================================
 # STYLING
