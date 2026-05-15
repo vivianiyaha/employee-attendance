@@ -266,61 +266,6 @@ elif menu == "Employee Management":
         unsafe_allow_html=True
     )
 
-    tab1, tab2 = st.tabs(
-        [
-            "Add Employee",
-            "View Employees"
-        ]
-    )
-
-    # ============================================
-    # ADD EMPLOYEE
-    # ============================================
-
-    with tab1:
-
-        st.subheader("Add New Employee")
-
-        employee_id = st.text_input(
-            "Employee ID"
-        )
-
-        staff_name = st.text_input(
-            "Staff Name"
-        )
-
-        dept = st.text_input(
-            "Department"
-        )
-
-        position = st.text_input(
-            "Position"
-        )
-
-        if st.button("Add Employee"):
-
-            if (
-                employee_id
-                and staff_name
-                and dept
-                and position
-            ):
-
-                save_employee(
-                    employee_id,
-                    staff_name,
-                    dept,
-                    position
-                )
-
-                st.success(
-                    "Employee added successfully!"
-                )
-
-            else:
-                st.warning(
-                    "Please complete all fields."
-                )
 
     # ============================================
     # VIEW EMPLOYEES
