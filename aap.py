@@ -51,7 +51,12 @@ with col1:
 # =====================================================
 EMP_FILE = "employee.csv"
 LEV_FILE = "leaves.csv"
+LATE_TIME = "08:30:00"
+OVERTIME_TIME = "18:00:00"
 
+# =====================================================
+# SIDEBAR
+# =====================================================
 st.sidebar.title("Navigation")
 
 menu = st.sidebar.selectbox(
@@ -80,8 +85,7 @@ if menu == "Dashboard":
 
     c1.metric("Employees", len(st.session_state.employees))
     c2.metric("Attendance Records", len(st.session_state.attendance))
-LATE_TIME = "08:30:00"
-OVERTIME_TIME = "18:00:00"
+
 # =====================================================
 # EMPLOYEE MANAGEMENT
 # =====================================================
