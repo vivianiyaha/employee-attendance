@@ -174,7 +174,7 @@ elif menu == "Attendance Reports":
 
     st.subheader("Daily Attendance")
 
-    attendance_folder = "daily-attendance"
+    attendance_folder = "DATA_FOLDER"
 
     if os.path.exists(attendance_folder):
 
