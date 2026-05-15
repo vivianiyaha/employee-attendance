@@ -82,3 +82,98 @@ if menu == "Dashboard":
     c2.metric("Attendance Records", len(st.session_state.attendance))
 LATE_TIME = "08:30:00"
 OVERTIME_TIME = "18:00:00"
+# =====================================================
+# EMPLOYEE MANAGEMENT
+# =====================================================
+elif menu == "Employee Management":
+
+    st.subheader("Employee List")
+
+    if st.session_state.employees:
+        df = pd.DataFrame(st.session_state.employees)
+        df.index = range(1, len(df) + 1)
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No employees added yet")
+
+
+# =====================================================
+# ATTENDANCE REPORTS
+# =====================================================
+# =====================================================
+# ATTENDANCE REPORTS
+# =====================================================
+elif menu == "Attendance Reports":
+
+    st.subheader("Daily Attendance")
+
+    attendance_folder = "daily-attendance"
+
+    # Check if folder exists
+    if os.path.exists(attendance_folder):
+
+        # Get all csv files
+        csv_files = [
+            f for f in os.listdir(attendance_folder)
+            if f.endswith(".csv")
+        ]
+
+        if csv_files:
+
+            # SECOND DROPDOWN BUTTON
+            selected_file = st.selectbox(
+                "Select Daily Attendance File",
+                csv_files
+            )
+
+            # Optional load button
+            if st.button("Open Attendance File"):
+
+                file_path = os.path.join(
+                    attendance_folder,
+                    selected_file
+                )
+
+                try:
+                    df = pd.read_csv(file_path)
+
+                    # Start numbering from 1
+                    df.index = range(1, len(df) + 1)
+
+                    st.success(f"Loaded: {selected_file}")
+                    st.dataframe(
+                        df,
+                        use_container_width=True
+                    )
+
+                except Exception as e:
+                    st.error(f"Error loading file: {e}")
+
+        else:
+            st.warning(
+                "No CSV files found in daily-attendance folder"
+            )
+
+    else:
+        st.error(
+            "Folder 'daily-attendance' not found"
+        )
+# =====================================================
+# LEAVE MANAGEMENT
+# =====================================================
+elif menu == "Leave Management":
+    st.subheader("Leave Management")
+    st.write("Leave system coming soon")
+
+# =====================================================
+# HR ANALYTICS
+# =====================================================
+elif menu == "HR Analytics":
+
+    st.subheader("HR Analytics")
+
+    if st.session_state.attendance:
+        df = pd.DataFrame(st.session_state.attendance)
+        st.dataframe(df.describe(include="all"))
+    else:
+        st.info("No attendance data available")
