@@ -176,22 +176,26 @@ elif menu == "Attendance Reports":
 
     attendance_folder = DATA_FOLDER  # FIXED HERE
 
-    if os.path.exists(attendance_folder):
+    # Check folder exists
+if os.path.exists(attendance_folder):
 
-        csv_files = [f for f in os.listdir(attendance_folder) if f.endswith(".csv")]
+    # Get all CSV files in folder
+    csv_files = [f for f in os.listdir(attendance_folder) if f.endswith(".csv")]
 
-        if len(csv_files) > 0:
+    if csv_files:
 
-            selected_file = st.selectbox("Select Attendance File", csv_files)
+        # DROPDOWN BUTTON
+        selected_file = st.selectbox("Select Attendance File", csv_files)
 
-            file_path = os.path.join(attendance_folder, selected_file)
+        # Load selected file
+        file_path = os.path.join(attendance_folder, selected_file)
+        df = pd.read_csv(file_path)
 
-            df = pd.read_csv(file_path)
+        # Show data
+        df.index = range(1, len(df) + 1)
+        st.success(f"Loaded: {selected_file}")
+        st.dataframe(df, use_container_width=True)
 
-            df.index = range(1, len(df) + 1)
-
-            st.success(f"Showing: {selected_file}")
-            st.dataframe(df, use_container_width=True)
 
         else:
             st.warning("No CSV files in daily-attendance folder")
