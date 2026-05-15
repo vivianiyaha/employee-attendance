@@ -178,37 +178,28 @@ elif menu == "Attendance Reports":
 
     attendance_folder = "daily-attendance"
 
-    if not os.path.exists(attendance_folder):
-        st.error("daily-attendance folder not found")
-        st.stop()
+    if os.path.exists(attendance_folder):
 
-    # Get all CSV files
-    csv_files = [f for f in os.listdir(attendance_folder) if f.endswith(".csv")]
+        csv_files = [f for f in os.listdir(attendance_folder) if f.endswith(".csv")]
 
-    if not csv_files:
-        st.info("No attendance CSV files found")
-        st.stop()
+        if len(csv_files) > 0:
 
-    # Select file from dropdown
-    selected_file = st.selectbox("Select Attendance File", csv_files)
+            selected_file = st.selectbox("Select Attendance File", csv_files)
 
-    # Load button
-    if st.button("Load Selected File"):
+            file_path = os.path.join(attendance_folder, selected_file)
 
-        file_path = os.path.join(attendance_folder, selected_file)
-
-        try:
             df = pd.read_csv(file_path)
 
-            # Start numbering from 1
             df.index = range(1, len(df) + 1)
 
-            st.success(f"Loaded: {selected_file}")
+            st.success(f"Showing: {selected_file}")
             st.dataframe(df, use_container_width=True)
 
-        except Exception as e:
-            st.error(f"Error loading file: {e}")
+        else:
+            st.warning("No CSV files in daily-attendance folder")
 
+    else:
+        st.error("Folder 'daily-attendance' not found")
 # =====================================================
 # LEAVE MANAGEMENT
 # =====================================================
