@@ -252,11 +252,15 @@ elif menu == "HR Analytics":
 
     st.metric("Total Employees", len(employees))
 
-    fig = px.bar(
-        employees["Name"].value_counts().reset_index(),
-        x="index",
-        y="Name",
-        title="Employee Distribution"
-    )
+   emp_counts = employees["Name"].value_counts().reset_index()
 
-    st.plotly_chart(fig, use_container_width=True)
+emp_counts.columns = ["Name", "Count"]
+
+fig = px.bar(
+    emp_counts,
+    x="Name",
+    y="Count",
+    title="Employee Distribution"
+)
+
+st.plotly_chart(fig, use_container_width=True)
