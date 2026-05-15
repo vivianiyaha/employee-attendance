@@ -28,21 +28,6 @@ Path("reports").mkdir(exist_ok=True)
 employee_file = "employee.csv"
 
 # ==========================================================
-# CREATE EMPLOYEE CSV IF NOT EXISTS
-# ==========================================================
-
-if not os.path.exists(employee_file):
-    employee_df = pd.DataFrame(
-        columns=[
-            "Employee ID",
-            "Staff Name",
-            "Department",
-            "Position"
-        ]
-    )
-    employee_df.to_csv(employee_file, index=False)
-
-# ==========================================================
 # CUSTOM STYLING
 # ==========================================================
 
