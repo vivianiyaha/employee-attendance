@@ -118,19 +118,14 @@ menu = st.sidebar.radio(
 # ==========================================================
 
 def load_employees():
-    return pd.read_csv(employee_file)
+    df = pd.read_csv(employee_file)
+    df.columns = df.columns.str.strip()
 
+    # Ensure only Name exists
+    if "Name" not in df.columns:
+        df["Name"] = df.iloc[:, 0]
 
-def save_employee(employee_id, staff_name, dept, position):
-
-    df = load_employees()
-
-    new_row = pd.DataFrame({
-        "Employee ID": [employee_id],
-        "Staff Name": [staff_name],
-        "Department": [dept],
-        "Position": [position]
-    })
+    return df
 
     df = pd.concat([df, new_row], ignore_index=True)
     df.to_csv(employee_file, index=False)
