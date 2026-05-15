@@ -14,7 +14,7 @@ st.set_page_config(layout="wide")
 
 DATA_FOLDER = "data"
 os.makedirs(DATA_FOLDER, exist_ok=True)
-data_folder = "weekly_report"
+data_folder = "daily-attendance"
 Path(data_folder).mkdir(exist_ok=True)
 
 # =====================================================
