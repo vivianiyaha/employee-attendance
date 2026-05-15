@@ -64,6 +64,21 @@ menu = st.sidebar.selectbox(
         "HR Analytics"
     ]
 )
+# =====================================================
+# MAIN TITLE
+# =====================================================
+st.title("Attendance System")
 
+# =====================================================
+# DASHBOARD
+# =====================================================
+if menu == "Dashboard":
+
+    st.subheader("Dashboard")
+
+    c1, c2 = st.columns(2)
+
+    c1.metric("Employees", len(st.session_state.employees))
+    c2.metric("Attendance Records", len(st.session_state.attendance))
 LATE_TIME = "08:30:00"
 OVERTIME_TIME = "18:00:00"
