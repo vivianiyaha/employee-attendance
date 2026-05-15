@@ -100,7 +100,7 @@ section[data-testid="stSidebar"] * {
 # SIDEBAR MENU
 # ==========================================================
 
-st.sidebar.title("🧡 HR Attendance System")
+st.sidebar.title("Attendance System")
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -165,7 +165,7 @@ def get_leave_files():
 if menu == "Dashboard":
 
     st.markdown(
-        '<p class="main-title">🧡 HR Attendance Dashboard</p>',
+        '<p class="main-title">Attendance Dashboard</p>',
         unsafe_allow_html=True
     )
 
