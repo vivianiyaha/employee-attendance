@@ -105,8 +105,8 @@ def load_attendance(file_path):
         "Time In": "Time in",
         "Time IN": "Time in",
         "Clock In": "Time in",
-        "Clock Out": "Time Out",
-        "Time Out ": "Time Out"
+        "Clock Out": "Time out",
+        "Time Out ": "Time out"
     })
 
     return df
@@ -167,7 +167,7 @@ elif menu == "Attendance Reports":
         df = load_attendance(path)
 
         # SAFE CHECK
-        required = ["Name", "Date (dd/mm/yy)", "Time in", "Time Out"]
+        required = ["Name", "Date (dd/mm/yy)", "Time in", "Time out"]
         missing = [c for c in required if c not in df.columns]
 
         if missing:
@@ -176,13 +176,13 @@ elif menu == "Attendance Reports":
 
         # CONVERT TIME SAFELY
         df["Time in"] = pd.to_datetime(df["Time in"], errors="coerce")
-        df["Time Out"] = pd.to_datetime(df["Time Out"], errors="coerce")
+        df["Time Out"] = pd.to_datetime(df["Time out"], errors="coerce")
 
         employees = set(load_employees()["Name"].astype(str))
         attended = set(df["Name"].astype(str))
 
         late = df[df["Time in"].dt.time > time(8, 30)]
-        overtime = df[df["Time Out"].dt.time > time(19, 0)]
+        overtime = df[df["Time out"].dt.time > time(19, 0)]
         absentees = pd.DataFrame({"Name": list(employees - attended)})
 
         st.subheader("Summary")
