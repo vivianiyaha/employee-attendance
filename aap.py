@@ -52,5 +52,18 @@ with col1:
 EMP_FILE = "employee.csv"
 LEV_FILE = "leaves.csv"
 
+st.sidebar.title("Navigation")
+
+menu = st.sidebar.selectbox(
+    "Menu",
+    [
+        "Dashboard",
+        "Employee Management",
+        "Attendance Reports",
+        "Leave Management",
+        "HR Analytics"
+    ]
+)
+
 LATE_TIME = "08:30:00"
 OVERTIME_TIME = "18:00:00"
