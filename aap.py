@@ -26,7 +26,7 @@ Path("daily-attendance").mkdir(exist_ok=True)
 Path("leave-management").mkdir(exist_ok=True)
 Path("reports").mkdir(exist_ok=True)
 
-employee_file = "employees.csv"
+employee_file = "employee.csv"
 
 # ==========================================================
 # CREATE EMPLOYEE CSV IF NOT EXISTS
