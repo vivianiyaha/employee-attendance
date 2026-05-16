@@ -306,6 +306,10 @@ elif menu == "Leave Management":
 # HR ANALYTICS (MONTHLY ONLY)
 # =========================================================
 
+# =========================================================
+# HR ANALYTICS (MONTHLY ONLY)
+# =========================================================
+
 elif menu == "HR Analytics":
 
     st.markdown(
@@ -337,211 +341,75 @@ elif menu == "HR Analytics":
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # =====================================================
+    # MONTHLY ATTENDANCE ANALYTICS ONLY
+    # =====================================================
 
-# =========================================================
-# TOP 10 MOST PUNCTUAL EMPLOYEES
-# =========================================================
+    att_files = get_files("daily-attendance")
 
-att_files = get_files("daily-attendance")
-
-if not att_files:
-
-    st.warning("No attendance data available for analytics")
-
-else:
-
-    all_data = []
-
-    for file in att_files:
-
-        path = os.path.join("daily-attendance", file)
-
-        df = load_attendance(path)
-
-        if "Name" in df.columns and "Time in" in df.columns:
-
-            df["Time in"] = pd.to_datetime(
-                df["Time in"],
-                errors="coerce"
-            )
-
-            all_data.append(df)
-
-    if all_data:
-
-        df_all = pd.concat(all_data, ignore_index=True)
-
-        punctual_df = df_all[
-            df_all["Time in"].dt.time <= time(8, 30)
-        ]
-
-        punctual_counts = (
-            punctual_df["Name"]
-            .value_counts()
-            .reset_index()
-        )
-
-        punctual_counts.columns = [
-            "Name",
-            "Punctual Days"
-        ]
-
-        top_10 = punctual_counts.head(10)
-
-        st.subheader("🏆 Top 10 Most Punctual Employees")
-
-        st.dataframe(top_10, use_container_width=True)
-
-        fig = px.bar(
-            top_10,
-            x="Name",
-            y="Punctual Days",
-            title="Top 10 Most Punctual Employees"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
+    if not att_files:
+        st.warning("No attendance data available for analytics")
 
     else:
-        st.warning("No valid attendance data found")
 
+        all_data = []
 
-# =========================================================
-# ADVANCED PUNCTUALITY ANALYTICS
-# =========================================================
+        for file in att_files:
 
-att_files = get_files("daily-attendance")
+            path = os.path.join("daily-attendance", file)
 
-if not att_files:
+            df = load_attendance(path)
 
-    st.warning("No attendance data available for analytics")
+            if "Name" in df.columns and "Time in" in df.columns:
 
-else:
+                df["Time in"] = pd.to_datetime(df["Time in"], errors="coerce")
 
-    all_data = []
+                if "Date" in df.columns:
+                    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+                else:
+                    df["Date"] = pd.to_datetime("today")
 
-    for file in att_files:
+                all_data.append(df)
 
-        path = os.path.join("daily-attendance", file)
+        if all_data:
 
-        df = load_attendance(path)
+            df_all = pd.concat(all_data, ignore_index=True)
 
-        if "Name" in df.columns and "Time in" in df.columns:
+            df_all = df_all.dropna(subset=["Name", "Time in"])
 
-            df["Time in"] = pd.to_datetime(
-                df["Time in"],
-                errors="coerce"
+            # =====================================================
+            # MONTHLY GROUPING ONLY
+            # =====================================================
+
+            df_all["Month"] = df_all["Date"].dt.to_period("M").astype(str)
+
+            monthly_summary = df_all.groupby("Name").agg(
+                Total_Days=("Name", "count"),
+                On_Time_Days=("Time in", lambda x: (x.dt.time <= time(8, 30)).sum())
+            ).reset_index()
+
+            monthly_summary["Punctuality (%)"] = (
+                monthly_summary["On_Time_Days"] /
+                monthly_summary["Total_Days"] * 100
+            ).round(2)
+
+            monthly_summary = monthly_summary.sort_values(
+                by="Punctuality (%)",
+                ascending=False
             )
 
-            if "Date" in df.columns:
-                df["Date"] = pd.to_datetime(
-                    df["Date"],
-                    errors="coerce"
-                )
-            else:
-                df["Date"] = pd.to_datetime("today")
+            st.subheader("📅 Monthly Performance Ranking")
 
-            all_data.append(df)
+            st.dataframe(monthly_summary, use_container_width=True)
 
-    if all_data:
-
-        df_all = pd.concat(all_data, ignore_index=True)
-
-        df_all = df_all.dropna(subset=["Name", "Time in"])
-
-        # =====================================================
-        # RULES
-        # =====================================================
-
-        ON_TIME = time(8, 30)
-        LATE_LIMIT = time(9, 0)
-
-        df_all["Status"] = np.where(
-            df_all["Time in"].dt.time <= ON_TIME,
-            "On Time",
-            np.where(
-                df_all["Time in"].dt.time <= LATE_LIMIT,
-                "Late",
-                "Very Late"
+            fig = px.bar(
+                monthly_summary.head(10),
+                x="Name",
+                y="Punctuality (%)",
+                title="Top Monthly Performers"
             )
-        )
 
-        score_map = {
-            "On Time": 1,
-            "Late": -0.5,
-            "Very Late": -1
-        }
+            st.plotly_chart(fig, use_container_width=True)
 
-        df_all["Score"] = df_all["Status"].map(score_map)
-
-        # =====================================================
-        # SUMMARY
-        # =====================================================
-
-        summary = df_all.groupby("Name").agg(
-            Total_Days=("Name", "count"),
-            On_Time_Days=("Status", lambda x: (x == "On Time").sum()),
-            Late_Days=("Status", lambda x: (x == "Late").sum()),
-            Very_Late_Days=("Status", lambda x: (x == "Very Late").sum()),
-            Total_Score=("Score", "sum")
-        ).reset_index()
-
-        summary["Punctuality (%)"] = (
-            summary["On_Time_Days"] /
-            summary["Total_Days"] * 100
-        ).round(2)
-
-        summary = summary.sort_values(
-            by="Total_Score",
-            ascending=False
-        )
-
-        st.subheader("🏆 Overall Leaderboard (Top 10)")
-
-        st.dataframe(summary.head(10), use_container_width=True)
-
-        fig = px.bar(
-            summary.head(10),
-            x="Name",
-            y="Total_Score",
-            title="Top 10 Employees by Punctuality Score"
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-        # =====================================================
-        # MONTHLY LEADERBOARD
-        # =====================================================
-
-        df_all["Month"] = df_all["Date"].dt.to_period("M").astype(str)
-
-        selected_month = st.selectbox(
-            "Select Month for Ranking",
-            sorted(df_all["Month"].dropna().unique())
-        )
-
-        monthly_df = df_all[
-            df_all["Month"] == selected_month
-        ]
-
-        monthly_summary = monthly_df.groupby("Name").agg(
-            Total_Days=("Name", "count"),
-            On_Time_Days=("Status", lambda x: (x == "On Time").sum()),
-            Total_Score=("Score", "sum")
-        ).reset_index()
-
-        monthly_summary["Punctuality (%)"] = (
-            monthly_summary["On_Time_Days"] /
-            monthly_summary["Total_Days"] * 100
-        ).round(2)
-
-        monthly_summary = monthly_summary.sort_values(
-            by="Total_Score",
-            ascending=False
-        )
-
-        st.subheader(f"📅 Monthly Leaderboard ({selected_month})")
-
-        st.dataframe(monthly_summary.head(10), use_container_width=True)
-
-    else:
-         st.warning("No valid attendance data found")
+        else:
+            st.warning("No valid attendance data found")
