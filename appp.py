@@ -11,7 +11,7 @@ import plotly.express as px
 # ==========================================================
 
 st.set_page_config(
-    page_title="HR Attendance System",
+    page_title="Attendance System",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -117,7 +117,7 @@ def load_attendance(file_path):
 
 if menu == "Dashboard":
 
-    st.markdown('<div class="title">HR DASHBOARD</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">DASHBOARD</div>', unsafe_allow_html=True)
 
     employees = load_employees()
 
