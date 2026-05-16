@@ -176,7 +176,27 @@ elif menu == "Attendance Reports":
             df["Time out"],
             errors="coerce"
         )
+        # =========================
+# REPORT DATE
+# Get date from attendance file
+# =========================
 
+if "Date" in df.columns:
+    df["Date"] = pd.to_datetime(
+        df["Date"],
+        errors="coerce"
+    )
+
+    report_date = (
+        df["Date"]
+        .dropna()
+        .iloc[0]
+        .date()
+    )
+
+else:
+    # fallback if no Date column
+    report_date = datetime.today().date()
         # =========================
         # NIGHT SHIFT DETECTION
         # =========================
