@@ -304,7 +304,7 @@ elif menu == "Leave Management":
 
 
 # HR ANALYTICS (MONTHLY ONLY)
-=======================================
+# =======================================
 
 elif menu == "HR Analytics":
 
