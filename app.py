@@ -217,7 +217,6 @@ if menu == "Dashboard":
 # =========================================================
 
 elif menu == "Attendance Reports":
-    st.dataframe(df, use_container_width=True)
 
     st.markdown(
         '<div class="title">ATTENDANCE REPORTS</div>',
@@ -230,6 +229,7 @@ elif menu == "Attendance Reports":
         st.warning("No attendance files found")
 
     else:
+
         file = st.selectbox("Select File", files)
         path = os.path.join("daily-attendance", file)
 
@@ -242,9 +242,13 @@ elif menu == "Attendance Reports":
             st.error(f"Missing columns: {missing}")
             st.stop()
 
-        # =====================================================
+        # 📋 ATTENDANCE LIST 
+
+        st.subheader("📋 Attendance List")
+        st.dataframe(df, use_container_width=True)
+  
         # TIME CONVERSION
-        # =====================================================
+      
 
         df["Time in"] = pd.to_datetime(
             df["Time in"],
