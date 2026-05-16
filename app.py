@@ -275,12 +275,23 @@ else:
                 ).dt.date
 
                 approved_leave = leave_df[
-                    (leave_df["Status"].str.lower() == "approved")
-                    &
-                    (leave_df["Start Date"] <= today)
-                    &
-                    (leave_df["End Date"] >= today)
-                ]
+    (
+        leave_df["Status"]
+        .str.lower()
+        .str.strip()
+        == "approved"
+    )
+    &
+    (
+        leave_df["Start Date"]
+        <= report_date
+    )
+    &
+    (
+        leave_df["End Date"]
+        >= report_date
+    )
+]
 
                 staff_on_leave.update(
                     approved_leave["Name"]
