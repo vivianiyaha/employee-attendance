@@ -12,7 +12,7 @@ import plotly.express as px
 # =========================================================
 
 st.set_page_config(
-    page_title="HR Attendance System",
+    page_title="Attendance System",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -75,7 +75,7 @@ section[data-testid="stSidebar"] * {
 # SIDEBAR
 # =========================================================
 
-st.sidebar.title("HR SYSTEM")
+st.sidebar.title("NAVIGATION BAR")
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -302,13 +302,9 @@ elif menu == "Leave Management":
         st.warning("No leave data found")
 
 
-# =========================================================
-# HR ANALYTICS (MONTHLY ONLY)
-# =========================================================
 
-# =========================================================
 # HR ANALYTICS (MONTHLY ONLY)
-# =========================================================
+=======================================
 
 elif menu == "HR Analytics":
 
@@ -343,7 +339,7 @@ elif menu == "HR Analytics":
 
     # =====================================================
     # MONTHLY ATTENDANCE ANALYTICS ONLY
-    # =====================================================
+
 
     att_files = get_files("daily-attendance")
 
