@@ -217,6 +217,7 @@ if menu == "Dashboard":
 # =========================================================
 
 elif menu == "Attendance Reports":
+    st.dataframe(df, use_container_width=True)
 
     st.markdown(
         '<div class="title">ATTENDANCE REPORTS</div>',
