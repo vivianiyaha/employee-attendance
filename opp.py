@@ -308,20 +308,135 @@ elif menu == "Leave Management":
 
 elif menu == "HR Analytics":
 
-    st.markdown('<div class="title">HR ANALYTICS</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="title">HR ANALYTICS</div>',
+        unsafe_allow_html=True
+    )
 
-    att_files = get_files("daily-attendance")
+    employees = load_employees()
+
+    st.metric(
+        "Total Employees",
+        len(employees)
+    )
+
+    emp_counts = (
+        employees["Name"]
+        .value_counts()
+        .reset_index()
+    )
+
+    emp_counts.columns = ["Name", "Count"]
+
+    fig = px.bar(
+        emp_counts,
+        x="Name",
+        y="Count",
+        title="Employee Distribution"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# =========================================================
+# TOP 10 MOST PUNCTUAL EMPLOYEES
+# =========================================================
+
+att_files = get_files("daily-attendance")
+
+if not att_files:
+
+    st.warning("No attendance data available for analytics")
+
+else:
 
     all_data = []
 
     for file in att_files:
-        df = load_attendance(os.path.join("daily-attendance", file))
+
+        path = os.path.join("daily-attendance", file)
+
+        df = load_attendance(path)
 
         if "Name" in df.columns and "Time in" in df.columns:
-            df["Time in"] = pd.to_datetime(df["Time in"], errors="coerce")
+
+            df["Time in"] = pd.to_datetime(
+                df["Time in"],
+                errors="coerce"
+            )
+
+            all_data.append(df)
+
+    if all_data:
+
+        df_all = pd.concat(all_data, ignore_index=True)
+
+        punctual_df = df_all[
+            df_all["Time in"].dt.time <= time(8, 30)
+        ]
+
+        punctual_counts = (
+            punctual_df["Name"]
+            .value_counts()
+            .reset_index()
+        )
+
+        punctual_counts.columns = [
+            "Name",
+            "Punctual Days"
+        ]
+
+        top_10 = punctual_counts.head(10)
+
+        st.subheader("🏆 Top 10 Most Punctual Employees")
+
+        st.dataframe(top_10, use_container_width=True)
+
+        fig = px.bar(
+            top_10,
+            x="Name",
+            y="Punctual Days",
+            title="Top 10 Most Punctual Employees"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    else:
+        st.warning("No valid attendance data found")
+
+
+# =========================================================
+# ADVANCED PUNCTUALITY ANALYTICS
+# =========================================================
+
+att_files = get_files("daily-attendance")
+
+if not att_files:
+
+    st.warning("No attendance data available for analytics")
+
+else:
+
+    all_data = []
+
+    for file in att_files:
+
+        path = os.path.join("daily-attendance", file)
+
+        df = load_attendance(path)
+
+        if "Name" in df.columns and "Time in" in df.columns:
+
+            df["Time in"] = pd.to_datetime(
+                df["Time in"],
+                errors="coerce"
+            )
 
             if "Date" in df.columns:
-                df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+                df["Date"] = pd.to_datetime(
+                    df["Date"],
+                    errors="coerce"
+                )
             else:
                 df["Date"] = pd.to_datetime("today")
 
@@ -331,20 +446,102 @@ elif menu == "HR Analytics":
 
         df_all = pd.concat(all_data, ignore_index=True)
 
-        df_all["Month"] = df_all["Date"].dt.to_period("M").astype(str)
+        df_all = df_all.dropna(subset=["Name", "Time in"])
+
+        # =====================================================
+        # RULES
+        # =====================================================
+
+        ON_TIME = time(8, 30)
+        LATE_LIMIT = time(9, 0)
+
+        df_all["Status"] = np.where(
+            df_all["Time in"].dt.time <= ON_TIME,
+            "On Time",
+            np.where(
+                df_all["Time in"].dt.time <= LATE_LIMIT,
+                "Late",
+                "Very Late"
+            )
+        )
+
+        score_map = {
+            "On Time": 1,
+            "Late": -0.5,
+            "Very Late": -1
+        }
+
+        df_all["Score"] = df_all["Status"].map(score_map)
+
+        # =====================================================
+        # SUMMARY
+        # =====================================================
 
         summary = df_all.groupby("Name").agg(
             Total_Days=("Name", "count"),
-            On_Time=("Time in", lambda x: (x.dt.time <= time(8,30)).sum())
+            On_Time_Days=("Status", lambda x: (x == "On Time").sum()),
+            Late_Days=("Status", lambda x: (x == "Late").sum()),
+            Very_Late_Days=("Status", lambda x: (x == "Very Late").sum()),
+            Total_Score=("Score", "sum")
         ).reset_index()
 
-        summary["Punctuality (%)"] = (summary["On_Time"] / summary["Total_Days"] * 100).round(2)
+        summary["Punctuality (%)"] = (
+            summary["On_Time_Days"] /
+            summary["Total_Days"] * 100
+        ).round(2)
 
-        st.subheader("Monthly Employee Performance")
-        st.dataframe(summary, use_container_width=True)
+        summary = summary.sort_values(
+            by="Total_Score",
+            ascending=False
+        )
 
-        fig = px.bar(summary, x="Name", y="Punctuality (%)")
+        st.subheader("🏆 Overall Leaderboard (Top 10)")
+
+        st.dataframe(summary.head(10), use_container_width=True)
+
+        fig = px.bar(
+            summary.head(10),
+            x="Name",
+            y="Total_Score",
+            title="Top 10 Employees by Punctuality Score"
+        )
+
         st.plotly_chart(fig, use_container_width=True)
 
+        # =====================================================
+        # MONTHLY LEADERBOARD
+        # =====================================================
+
+        df_all["Month"] = df_all["Date"].dt.to_period("M").astype(str)
+
+        selected_month = st.selectbox(
+            "Select Month for Ranking",
+            sorted(df_all["Month"].dropna().unique())
+        )
+
+        monthly_df = df_all[
+            df_all["Month"] == selected_month
+        ]
+
+        monthly_summary = monthly_df.groupby("Name").agg(
+            Total_Days=("Name", "count"),
+            On_Time_Days=("Status", lambda x: (x == "On Time").sum()),
+            Total_Score=("Score", "sum")
+        ).reset_index()
+
+        monthly_summary["Punctuality (%)"] = (
+            monthly_summary["On_Time_Days"] /
+            monthly_summary["Total_Days"] * 100
+        ).round(2)
+
+        monthly_summary = monthly_summary.sort_values(
+            by="Total_Score",
+            ascending=False
+        )
+
+        st.subheader(f"📅 Monthly Leaderboard ({selected_month})")
+
+        st.dataframe(monthly_summary.head(10), use_container_width=True)
+
     else:
-        st.warning("No attendance data found")
+         st.warning("No valid attendance data found")
