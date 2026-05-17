@@ -7,3 +7,4 @@ bcrypt
 PyGithub
 python-docx
 PyPDF2
+base64
