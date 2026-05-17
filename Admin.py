@@ -1,32 +1,21 @@
-# app.py
-# Streamlit Admin App for GitHub File Management + Viewer
-#
-# Features:
-# - Upload .pdf, .docx, .txt files directly to GitHub folder: admin/
-# - Collapsible sidebar
-# - Dropdown sections:
-#     - Meetings
-#     - Admin Reports
-# - Dynamically loads files from GitHub folders:
-#     - Meetings/
-#     - Reports/
-# - Displays selected file contents on screen
-#
-# REQUIRED:
-# pip install streamlit PyGithub python-docx PyPDF2
-
 import streamlit as st
-from github import Github
-from github.GithubException import GithubException
+import requests
 from docx import Document
 from PyPDF2 import PdfReader
-import base64
 import io
 
 # =========================
 # CONFIG
 # =========================
 
+GITHUB_USER = "vivianiyaha"
+REPO_NAME = "employee-attendance"
+BRANCH = "main"
+
+MEETINGS_FOLDER = "Meetings"
+REPORTS_FOLDER = "Reports"
+
+BASE_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/{BRANCH}"
 
 # =========================
 # PAGE CONFIG
@@ -38,191 +27,109 @@ st.set_page_config(
 )
 
 # =========================
-# CUSTOM STYLING
-# =========================
-
-st.markdown("""
-<style>
-.main {
-    padding-top: 1rem;
-}
-
-section[data-testid="stSidebar"] {
-    width: 320px !important;
-}
-
-.file-box {
-    background-color: #f5f5f5;
-    padding: 15px;
-    border-radius: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
 # HELPERS
 # =========================
 
-def upload_file_to_github(uploaded_file):
-    try:
-        file_path = f"{ADMIN_FOLDER}/{uploaded_file.name}"
+def get_files_from_github(folder):
+    """Fetch file list from GitHub API (public repo only)"""
+    api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/{folder}"
 
-        content = uploaded_file.read()
+    response = requests.get(api_url)
 
-        try:
-            existing_file = repo.get_contents(file_path)
-
-            repo.update_file(
-                path=file_path,
-                message=f"Updated {uploaded_file.name}",
-                content=content,
-                sha=existing_file.sha,
-            )
-
-            st.success(f"Updated {uploaded_file.name} in GitHub")
-
-        except GithubException:
-            repo.create_file(
-                path=file_path,
-                message=f"Uploaded {uploaded_file.name}",
-                content=content,
-            )
-
-            st.success(f"Uploaded {uploaded_file.name} to GitHub")
-
-    except Exception as e:
-        st.error(f"Upload failed: {e}")
-
-
-def get_files_from_folder(folder_name):
-    try:
-        contents = repo.get_contents(folder_name)
-
-        files = [
-            item.name for item in contents
-            if item.type == "file"
-        ]
-
-        return files
-
-    except Exception as e:
-        st.error(f"Could not load files from {folder_name}: {e}")
+    if response.status_code == 200:
+        data = response.json()
+        return [file["name"] for file in data if file["type"] == "file"]
+    else:
+        st.error(f"Error loading {folder}")
         return []
 
 
-def get_file_content(folder_name, file_name):
-    path = f"{folder_name}/{file_name}"
+def get_file_content(folder, file_name):
+    """Download raw file"""
+    url = f"{BASE_URL}/{folder}/{file_name}"
+    response = requests.get(url)
 
-    file = repo.get_contents(path)
-
-    return base64.b64decode(file.content)
+    if response.status_code == 200:
+        return response.content
+    else:
+        st.error("Failed to fetch file")
+        return None
 
 
 def read_pdf(file_bytes):
     pdf = PdfReader(io.BytesIO(file_bytes))
-
     text = ""
 
     for page in pdf.pages:
-        text += page.extract_text() + "\n"
+        if page.extract_text():
+            text += page.extract_text() + "\n"
 
     return text
 
 
 def read_docx(file_bytes):
     doc = Document(io.BytesIO(file_bytes))
-
-    text = "\n".join([para.text for para in doc.paragraphs])
-
-    return text
+    return "\n".join([p.text for p in doc.paragraphs])
 
 
-def display_file(folder_name, file_name):
-    file_bytes = get_file_content(folder_name, file_name)
+def display_file(folder, file_name):
+    file_bytes = get_file_content(folder, file_name)
 
-    lower = file_name.lower()
+    if not file_bytes:
+        return
 
     st.subheader(file_name)
 
-    if lower.endswith(".txt"):
-        text = file_bytes.decode("utf-8")
-        st.text_area("Content", text, height=500)
+    if file_name.endswith(".txt"):
+        st.text_area("Content", file_bytes.decode("utf-8"), height=500)
 
-    elif lower.endswith(".docx"):
-        text = read_docx(file_bytes)
-        st.text_area("Content", text, height=500)
+    elif file_name.endswith(".docx"):
+        st.text_area("Content", read_docx(file_bytes), height=500)
 
-    elif lower.endswith(".pdf"):
+    elif file_name.endswith(".pdf"):
         text = read_pdf(file_bytes)
-        st.text_area("Extracted PDF Text", text, height=500)
+        st.text_area("Extracted Text", text, height=500)
 
         st.download_button(
-            label="Download PDF",
+            "Download PDF",
             data=file_bytes,
             file_name=file_name,
-            mime="application/pdf",
+            mime="application/pdf"
         )
 
     else:
-        st.warning("Unsupported file format")
+        st.warning("Unsupported format")
 
 
 # =========================
-# MAIN HEADER
+# UI
 # =========================
 
-st.title("Admin Document Management Portal")
-
-# =========================
-# FILE UPLOAD SECTION
-# =========================
-
-st.header("Upload Files")
-
-upload_type = st.selectbox(
-    "Select destination folder",
-    ["admin", "Meetings", "Reports"]
-)
-
-uploaded_file = st.file_uploader(
-    "Upload PDF, DOCX, or TXT",
-    type=["pdf", "docx", "txt"]
-)
-
-if uploaded_file and st.button("Upload to GitHub"):
-    upload_file_to_github(uploaded_file, upload_type)
-
-# =========================
-# SIDEBAR
-# =========================
+st.title("Admin Document Portal")
 
 with st.sidebar:
-    st.title("Navigation")
+    st.header("Navigation")
 
-    # Meetings Dropdown
-    with st.expander("Meetings", expanded=False):
-
-        meeting_files = get_files_from_folder(MEETINGS_FOLDER)
+    # Meetings
+    with st.expander("Meetings"):
+        meeting_files = get_files_from_github(MEETINGS_FOLDER)
 
         selected_meeting = st.selectbox(
             "Select Meeting File",
-            ["None"] + meeting_files,
-            key="meetings_select"
+            ["None"] + meeting_files
         )
 
-    # Reports Dropdown
-    with st.expander("Admin Reports", expanded=False):
-
-        report_files = get_files_from_folder(REPORTS_FOLDER)
+    # Reports
+    with st.expander("Reports"):
+        report_files = get_files_from_github(REPORTS_FOLDER)
 
         selected_report = st.selectbox(
             "Select Report File",
-            ["None"] + report_files,
-            key="reports_select"
+            ["None"] + report_files
         )
 
 # =========================
-# DISPLAY CONTENT
+# DISPLAY
 # =========================
 
 if selected_meeting != "None":
@@ -232,4 +139,4 @@ elif selected_report != "None":
     display_file(REPORTS_FOLDER, selected_report)
 
 else:
-    st.info("Select a file from the sidebar to view content.")
+    st.info("Select a file from the sidebar")
