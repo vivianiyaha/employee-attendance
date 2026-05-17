@@ -3,3 +3,7 @@ pandas
 plotly
 sqlalchemy
 bcrypt
+
+PyGithub
+python-docx
+PyPDF2
