@@ -1,8 +1,5 @@
 import streamlit as st
 import os
-from docx import Document
-from PyPDF2 import PdfReader
-import io
 import base64
 
 # =========================
@@ -16,9 +13,15 @@ REPORTS_FOLDER = "Reports"
 # HELPERS
 # =========================
 
-def display_file(folder, file_name):
-    import os
+def get_files(folder):
+    try:
+        return os.listdir(folder)
+    except Exception as e:
+        st.error(f"Error loading files: {e}")
+        return []
 
+
+def display_file(folder, file_name):
     file_path = os.path.join(folder, file_name)
 
     st.subheader(file_name)
@@ -63,15 +66,36 @@ def display_file(folder, file_name):
 
     else:
         st.warning("Unsupported file type")
+
 # =========================
 # UI
 # =========================
+
+st.set_page_config(page_title="Admin Document Portal", layout="wide")
 
 st.title("Admin Document Portal")
 
 with st.sidebar:
     st.header("Navigation")
 
+    meeting_files = get_files(MEETINGS_FOLDER)
+    selected_meeting = st.selectbox("Meetings", ["None"] + meeting_files)
+
+    report_files = get_files(REPORTS_FOLDER)
+    selected_report = st.selectbox("Reports", ["None"] + report_files)
+
+# =========================
+# DISPLAY
+# =========================
+
+if selected_meeting != "None":
+    display_file(MEETINGS_FOLDER, selected_meeting)
+
+elif selected_report != "None":
+    display_file(REPORTS_FOLDER, selected_report)
+
+else:
+    st.info("Select a file from the sidebar")
     meeting_files = get_files(MEETINGS_FOLDER)
     selected_meeting = st.selectbox("Meetings", ["None"] + meeting_files)
 
