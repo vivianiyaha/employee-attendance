@@ -3,6 +3,7 @@ import os
 from docx import Document
 from PyPDF2 import PdfReader
 import io
+import base64
 
 # =========================
 # FOLDERS
@@ -15,48 +16,53 @@ REPORTS_FOLDER = "Reports"
 # HELPERS
 # =========================
 
-def get_files(folder):
-    try:
-        return os.listdir(folder)
-    except:
-        return []
-
-def read_docx(file_path):
-    try:
-        doc = Document(file_path)
-        return "\n".join([p.text for p in doc.paragraphs])
-    except Exception as e:
-        return f"Error reading DOCX: {e}"
-
-def read_pdf(file_path):
-    try:
-        pdf = PdfReader(file_path)
-        text = ""
-        for page in pdf.pages:
-            if page.extract_text():
-                text += page.extract_text() + "\n"
-        return text
-    except Exception as e:
-        return f"Error reading PDF: {e}"
-
 def display_file(folder, file_name):
+    import os
+
     file_path = os.path.join(folder, file_name)
 
     st.subheader(file_name)
 
-    if file_name.endswith(".txt"):
-        with open(file_path, "r") as f:
-            st.text_area("Content", f.read(), height=500)
+    # PDF → display inside app
+    if file_name.endswith(".pdf"):
+        with open(file_path, "rb") as f:
+            pdf_bytes = f.read()
 
+        st.download_button(
+            "Download PDF",
+            data=pdf_bytes,
+            file_name=file_name,
+            mime="application/pdf"
+        )
+
+        st.markdown("### Preview")
+        st.components.v1.iframe(
+            src=f"data:application/pdf;base64,{base64.b64encode(pdf_bytes).decode()}",
+            width=700,
+            height=900
+        )
+
+    # DOCX → download only (original format preserved)
     elif file_name.endswith(".docx"):
-        st.text_area("Content", read_docx(file_path), height=500)
+        with open(file_path, "rb") as f:
+            docx_bytes = f.read()
 
-    elif file_name.endswith(".pdf"):
-        st.text_area("Content", read_pdf(file_path), height=500)
+        st.info("Preview not supported. Download to view in original format.")
+
+        st.download_button(
+            "Download DOCX",
+            data=docx_bytes,
+            file_name=file_name,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+
+    # TXT → simple display
+    elif file_name.endswith(".txt"):
+        with open(file_path, "r") as f:
+            st.text(f.read())
 
     else:
-        st.warning("Unsupported format")
-
+        st.warning("Unsupported file type")
 # =========================
 # UI
 # =========================
