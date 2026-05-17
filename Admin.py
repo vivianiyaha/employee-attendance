@@ -190,16 +190,20 @@ st.title("Admin Document Management Portal")
 # FILE UPLOAD SECTION
 # =========================
 
-st.header("Upload Admin Files")
+st.header("Upload Files")
+
+upload_type = st.selectbox(
+    "Select destination folder",
+    ["admin", "Meetings", "Reports"]
+)
 
 uploaded_file = st.file_uploader(
     "Upload PDF, DOCX, or TXT",
     type=["pdf", "docx", "txt"]
 )
 
-if uploaded_file:
-    if st.button("Upload to GitHub"):
-        upload_file_to_github(uploaded_file)
+if uploaded_file and st.button("Upload to GitHub"):
+    upload_file_to_github(uploaded_file, upload_type)
 
 # =========================
 # SIDEBAR
