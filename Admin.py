@@ -27,19 +27,6 @@ import io
 # CONFIG
 # =========================
 
-GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
-REPO_NAME = "your-username/your-repo"
-
-ADMIN_FOLDER = "admin"
-MEETINGS_FOLDER = "Meetings"
-REPORTS_FOLDER = "Reports"
-
-# =========================
-# GITHUB CONNECTION
-# =========================
-
-g = Github(GITHUB_TOKEN)
-repo = g.get_repo(REPO_NAME)
 
 # =========================
 # PAGE CONFIG
